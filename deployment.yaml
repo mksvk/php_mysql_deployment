@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-app-config
+data:
+  DB_HOST: mysql-service
+  DB_USER: tms_user
+  DB_PASS: tms_password
+  DB_NAME: tms
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: php
+  template:
+    metadata:
+      labels:
+        app: php
+    spec:
+      containers:
+      - name: php
+        image: mksvk/php:7.0
+        envFrom:
+        - configMapRef:
+            name: php-app-config
+        ports:
+        - containerPort: 80
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-service
+spec:
+  selector:
+    app: php
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: NodePort
